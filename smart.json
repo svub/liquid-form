@@ -1,8 +1,16 @@
 {
-  "name": "liquid-form",
-  "description": "Liquid form: forms as natural as plain text",
-  "homepage": "",
-  "author": "Sven Buschbeck",
-  "version": "0.0.1",
-  "git": "https://github.com/svub/liquid-form.git"
+	"name": "liquid-form",
+	"description": "Liquid form: forms as natural as plain text",
+	"homepage": "",
+	"author": "Sven Buschbeck",
+	"version": "0.0.1",
+	"git": "https://github.com/svub/liquid-form.git",
+	"packages": {
+		"tools": {
+			"path": "../tools"
+		},
+		"font-awesome-4-less": {
+			"path": "../fontawesome4-less"
+		}
+	}
 }
