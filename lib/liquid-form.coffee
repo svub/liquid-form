@@ -19,22 +19,22 @@ class LiquidForm
     else log "LiquidForm: item '#{selector}' not found."
 
   getItem: (selector) -> @items[selector]
-  closePicker: -> (logr item).hidePicker() for own s, item of logmr 'LiquidForm.closePicker: all items:', @items
+  allItems: -> (item for own s, item of logmr 'LiquidForm.closePicker: all items:', @items)
+  closePicker: -> (logr item).hidePicker() for item in @allItems()
+  update: -> item.update() for item in @allItems()
 
 class LiquidFormItem
   constructor: (@container, @config, @options, @form) ->
     @ensureHtml()
     if _.isFunction @config then @config = onChange: @config
     @container.data 'lf-item', @
-    @hidePicker()
+    @hidePicker() # initialzes picker and labels
     @hookUpHandlers()
 
   ensureHtml: ->
     @container.addClass 'lf-item'
     if (@picker = $ '.lf-picker', @container).length < 1
       @picker = @container.children().first().addClass 'lf-picker'
-    @picker.css 'min-width', @picker.width()
-    @picker.css 'min-height', @picker.height()
     @label = $ '<span class="lf-label">label</span>'
       .insertBefore @picker
     @prefix = $ '<span class="lf-prefix">prefix</span>'
@@ -44,17 +44,25 @@ class LiquidFormItem
     @close = $ '<a class="lf-close"><i></i></a>'
       .appendTo @picker
 
+  fixSize: _.once ->
+    @picker.css 'min-width', @picker.width()
+    @picker.css 'min-height', @picker.height()
+
   hookUpHandlers: ->
     @label.click => @showPicker()
     @close.click => @hidePicker()
     ($ document).click (e) => @maybeHide e
 
   showPicker: ->
+    @fixSize()
     later => # showPicker does not return false to not stop the click so that other fl-items get hidden but this will also tricker this maybeHide method; but later will trigger only after the maybeHide
       logmr 'lf.showPicker', @picker.addClass 'lf-modal'
         .addClass @getModeClass()
         .show()
-      @config.onShow?()
+      later =>
+        if (overflow = @picker.offset().left+@picker.outerWidth()-$(document).innerWidth()) > 0 then @picker.css 'left', -overflow
+        if (overflow = @picker.offset().left) < 0 then @picker.css 'left', -overflow
+        @config.onShow?()
 
   isHidden: -> @picker.is(':hidden')
   maybeHide: (e) -> unless @isHidden()
@@ -64,9 +72,11 @@ class LiquidFormItem
     @hidePicker() unless x? and y? and o.left <= x <= o.left+w and o.top <= y <= o.top+h
   hidePicker: -> unless @isHidden()
     log 'lf.hidePicker..,'
-    @picker.hide().removeClass 'lf-modal'
+    @picker.hide().removeClass('lf-modal lf-fullscreen lf-relative').css 'left',0
     if @options.data? then logmr 'lf.hidePicker: updated from form', u.updateFromForm @form, @options.data
-    @updateLabels logmr 'lf.hidePicker: parsed labels',  @parseLabels @config.onChange()
+    @update()
+
+  update: -> @updateLabels logmr 'lf.update: parsed labels', @parseLabels @config.onChange()
 
   parseLabels: (labels) ->
     if _.isArray(l = labels) then valid: true, prefix: l[0], label: l[1], suffix: l[2], value: l[1]
@@ -84,4 +94,4 @@ class LiquidFormItem
   getModeClass: -> if @isFullscreen() then 'lf-fullscreen' else 'lf-relative'
   isFullscreen: ->
     if (f = @options.fullscreen)? then f
-    else @picker.width()*2 > (d = $ document).innerWidth() or @picker.height()*2 > d.innerHeight()
+    else (@picker.width()*2 > (d = $ document).innerWidth()) or (@picker.height()*2 > d.innerHeight())
