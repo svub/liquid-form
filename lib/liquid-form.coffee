@@ -56,12 +56,19 @@ class LiquidFormItem
   showPicker: ->
     @fixSize()
     later => # showPicker does not return false to not stop the click so that other fl-items get hidden but this will also tricker this maybeHide method; but later will trigger only after the maybeHide
+      isFullscreen = @isFullscreen()
       logmr 'lf.showPicker', @picker.addClass 'lf-modal'
-        .addClass @getModeClass()
+        .addClass @getModeClass isFullscreen
         .show()
+      unless isFullscreen # fix relative position to be completely on screen and below label (=container)
+        po = @picker.offset(); d = $ document; co = @container.offset(); x = co.left; y = co.top+@container.height()
+        if (overflow = x+@picker.outerWidth()-d.innerWidth()) > 0 then x -= overflow
+        if (overflow = x) < 0 then x -= overlow
+        if (overflow = y+@picker.outerHeight()-d.innerHeight()) > 0 then y -= overflow
+        if (overflow = y) < 0 then y -= overflow
+        @picker.css 'left', x-co.left
+        @picker.css 'top', y-co.top
       later =>
-        if (overflow = @picker.offset().left+@picker.outerWidth()-$(document).innerWidth()) > 0 then @picker.css 'left', -overflow
-        if (overflow = @picker.offset().left) < 0 then @picker.css 'left', -overflow
         @config.onShow?()
 
   isHidden: -> @picker.is(':hidden')
@@ -72,7 +79,7 @@ class LiquidFormItem
     @hidePicker() unless x? and y? and o.left <= x <= o.left+w and o.top <= y <= o.top+h
   hidePicker: -> unless @isHidden()
     log 'lf.hidePicker..,'
-    @picker.hide().removeClass('lf-modal lf-fullscreen lf-relative').css 'left',0
+    @picker.hide().removeClass('lf-modal lf-fullscreen lf-relative').css('left', '').css 'top', ''
     if @options.data? then logmr 'lf.hidePicker: updated from form', u.updateFromForm @form, @options.data
     @update()
 
@@ -91,7 +98,7 @@ class LiquidFormItem
       @_setOrHide @suffix, labels.suffix
     else @label.html logmr 'mapWidget.updateLabels: invalid labels', labels
 
-  getModeClass: -> if @isFullscreen() then 'lf-fullscreen' else 'lf-relative'
+  getModeClass: (isFullscreen = @isFullscreen()) -> if isFullscreen then 'lf-fullscreen' else 'lf-relative'
   isFullscreen: ->
     if (f = @options.fullscreen)? then f
-    else (@picker.width()*2 > (d = $ document).innerWidth()) or (@picker.height()*2 > d.innerHeight())
+    else (@picker.width()*1.5 > (d = $ document).innerWidth()) or (@picker.height()*1.5 > d.innerHeight())

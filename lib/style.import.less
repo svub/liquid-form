@@ -7,14 +7,9 @@
     .lf-label { .show-as-link; }
     .lf-item { display: inline; position: relative;
         .lf-prefix:after { content: " "; }
-        // TODO parameterize colors (defined in variables.less) and such as below, make all .import.less files
-//		.lf-label { border-bottom: 1px solid @link-underline-color; color: @link-color; cursor: pointer;
-//			&:hover { border-bottom: 1px solid @link-underline-hover-color; color: @link-hover-color; }
-//		}
         .lf-suffix:before { content: " "; }
-        @bg-color: white;
-        .lf-picker { z-index: 1001; padding: 1.5em 2em; border-radius: 1em; display: block; background-color: @bg-color; box-shadow: 0 0 2em rgba(0,0,0,.25);
-            .lf-close { padding: .25em .333em; background-color: @bg-color; border-radius: 50%; }
+        .lf-picker { z-index: 1001; padding: 1.5em 2em; border-radius: 1em; display: inline-block; background-color: @lf-bg-color; box-shadow: 0 0 2em rgba(0,0,0,.25);
+            .lf-close { padding: .25em .333em; background-color: @lf-bg-color; border-radius: 50%; }
             &.lf-relative { position: absolute;
                 .lf-close { position: absolute; top: .5em; right: .5em; }
             }
