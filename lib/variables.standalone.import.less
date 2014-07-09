@@ -1,5 +1,10 @@
 @lf-link-color: #448;
-@lf-link-underline-color: @lf-link-color;
+@lf-link-border: 1px dashed @link-color;
 @lf-link-hover-color: darken(@lf-link-color, 20%);
-@lf-link-underline-hover-color: darken(@lf-link-underline-color, 20%);
+@lf-link-hover-border: 1px dashed @link-hover-color;
 @lf-bg-color: #fff;
+@lf-link-padding: 0;
+@lf-box-padding: .25em .4em;
+@lf-box-border: @lf-link-border;
+@lf-box-hover-border: @lf-link-hover-border;
+@lf-line-height: 1.7em; // base line height of 1 + sum of padding defined above + actual space

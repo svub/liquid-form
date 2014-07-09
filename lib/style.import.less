@@ -1,12 +1,23 @@
 .liquid-form {
-    .show-as-link() { border-bottom: 1px dotted @lf-link-underline-color;
-        color: @lf-link-color; cursor: pointer; display: inline !important;
-        &:hover { border-bottom-color: @lf-link-underline-hover-color;
-            color: @lf-link-hover-color; }
+    .lf-label { #lf-link(); }
+    textarea:not(.lf-raw) {
+        &::-webkit-input-placeholder { #lf-link(); }
+        &:-moz-placeholder { #lf-link(); }
+        &::-moz-placeholder { #lf-link(); }
+        &:-ms-input-placeholder { #lf-link(); }
     }
-    .lf-label { .show-as-link; }
-    .lf-item { display: inline; position: relative;
+    &.lf-boxed {
+        .lf-label,  { #lf-box(); }
+        textarea:not(.lf-raw) {
+            &::-webkit-input-placeholder { #lf-box(); }
+            &:-moz-placeholder { #lf-box(); }
+            &::-moz-placeholder { #lf-box(); }
+            &:-ms-input-placeholder { #lf-box(); }
+        }
+    }
+    .lf-item { display: inline; position: relative; line-height: @lf-line-height;
         .lf-prefix:after { content: " "; }
+        .lf-label { }
         .lf-suffix:before { content: " "; }
         .lf-picker { z-index: 1001; padding: 1.5em 2em; border-radius: 1em; display: inline-block; background-color: @lf-bg-color; box-shadow: 0 0 2em rgba(0,0,0,.25);
             .lf-close { padding: .25em .333em; background-color: @lf-bg-color; border-radius: 50%; }
@@ -20,9 +31,30 @@
         }
     }
     textarea:not(.lf-raw) { padding: 0; border: none; background: transparent; box-shadow: none;
-        &::-webkit-input-placeholder { .show-as-link; }
-        &:-moz-placeholder { .show-as-link; /* Firefox 18- */ }
-        &::-moz-placeholder { .show-as-link;  /* Firefox 19+ */ }
-        &:-ms-input-placeholder { .show-as-link; }
     }
+}
+
+.lf-toggle:not(.lf-closed) { #fa-icon-after(caret-up); }
+.lf-foldable {
+    overflow: hidden; .transition(height 1s);
+    &.lf-closed { height: 0 !important; }
+}
+
+#lf-link {
+    border-bottom: @lf-link-border; padding: @lf-link-padding;
+    &:hover { border-bottom: @lf-link-hover-border; }
+    #lf-link-common();
+}
+
+#lf-box {
+    border: @lf-box-border; padding: @lf-box-padding; white-space: nowrap;
+    &:hover { border: @lf-box-hover-border; }
+    #lf-link-common();
+}
+
+#lf-link-common {
+    cursor: pointer; display: inline !important; color: @lf-link-color;
+    &:hover { color: @lf-link-hover-color; }
+    #fa-icon-after(caret-down);
+    &:after { padding-left:.25em; }
 }

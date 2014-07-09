@@ -1,6 +1,6 @@
 Meteor.liquidForm = (selector, config) -> new LiquidForm selector, config
 class LiquidForm
-  constructor: (@selector, @configMap) ->
+  constructor: (@selector, @configMap = {}) ->
     @items = {}
     #logmr 'lf.init: container',
     @container = $(selector).addClass 'liquid-form'
@@ -9,19 +9,37 @@ class LiquidForm
     delete @configMap.options
     # TODO set default options
 
-    @parse()
+    @initItems()
+    @initFoldables()
 
-  parse: -> @initItem selector, config for selector, config of @configMap
+  initItems: -> @initItem selector, config for selector, config of @configMap
   initItem: (selector, config) ->
     #logmr 'lf.init: item',
     element = $ selector, @container
     if element.length > 0 then @items[selector] = new LiquidFormItem element, config, @options, @container
-    else log "LiquidForm: item '#{selector}' not found."
+    else log "LiquidForm: item '#{selector}' not found!"
+  initFoldables: ->
+    @initFoldable $ toggle for toggle in ($ '.lf-toggle', @container)
+  initFoldable: (node) ->
+    data = node.data()
+    closed = data.closed ? not (data.open ? false)
+    text = (data.text ? 'Open|Close').split '|'
+    node.addClass 'lf-label'
+    target = $ '#'+node.data().target
+    target.addClass 'lf-foldable'
+    updateState = (toggle = true) ->
+      if toggle then closed = not closed
+      target.toggleClass 'lf-closed', closed
+      node.text text[if closed then 0 else 1]
+      node.toggleClass 'lf-closed', closed
+    node.on 'click', -> updateState()
+    updateState false
 
   getItem: (selector) -> @items[selector]
   allItems: -> (item for own s, item of logmr 'LiquidForm.closePicker: all items:', @items)
   closePicker: -> (logr item).hidePicker() for item in @allItems()
   update: -> item.update() for item in @allItems()
+
 
 class LiquidFormItem
   constructor: (@container, @config, @options, @form) ->
