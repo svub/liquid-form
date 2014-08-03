@@ -19,15 +19,19 @@
         .lf-prefix:after { content: " "; }
         .lf-label { }
         .lf-suffix:before { content: " "; }
-        .lf-picker { z-index: 1001; padding: 1.5em 2em; border-radius: 1em; display: inline-block; background-color: @lf-bg-color; box-shadow: 0 0 2em rgba(0,0,0,.25);
-            .lf-close { padding: .25em .333em; background-color: @lf-bg-color; border-radius: 50%; }
+        @xp: 2em; @yp: 1.5em;
+        .lf-picker { z-index: 1001; padding: @yp @xp (@yp+2em) @xp; border-radius: 1em; display: inline-block; background-color: @lf-bg-color; box-shadow: 0 0 2em rgba(0,0,0,.25);
+            //.lf-close { padding: .25em .333em; background-color: @lf-bg-color; border-radius: 50%; }
+            //.lf-close { .btn; .btn-primary; } # do yourself to be most flexible
+            .lf-close { z-index: 1; position: absolute; right: @xp; bottom: @yp; }
             &.lf-relative { position: absolute;
-                .lf-close { position: absolute; top: .5em; right: .5em; }
+                //.lf-close { position: absolute; bottom: ; right: 2em; }
             }
             &.lf-fullscreen { position: fixed; top: 1em; right: 1em; bottom: 1em; left: 1em; z-index: 1030;
                 min-height: 0 !important; min-width: 0 !important; overflow: auto; box-shadow: 0 0 5em rgba(0,0,0, .5);
-                .lf-close { position: absolute; top: 1.5em; right: 2em; }
+                //.lf-close { position: absolute; bottom: 1.5em; right: 2em; }
             }
+            &.lf-picker-dummy { visibility: hidden; }
         }
     }
     textarea:not(.lf-raw) { padding: 0; border: none; background: transparent; box-shadow: none;

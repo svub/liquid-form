@@ -18,6 +18,7 @@ class LiquidForm
     element = $ selector, @container
     if element.length > 0 then @items[selector] = new LiquidFormItem element, config, @options, @container
     else log "LiquidForm: item '#{selector}' not found!"
+
   initFoldables: ->
     @initFoldable $ toggle for toggle in ($ '.lf-toggle', @container)
   initFoldable: (node) ->
@@ -40,11 +41,12 @@ class LiquidForm
   closePicker: -> (logr item).hidePicker() for item in @allItems()
   update: -> item.update() for item in @allItems()
 
-
 class LiquidFormItem
   constructor: (@container, @config, @options, @form) ->
+    if _.isFunction configFn = @config then @config = onChange: configFn
+    @config.title ?= @container.data 'title'
+
     @ensureHtml()
-    if _.isFunction @config then @config = onChange: @config
     @container.data 'lf-item', @
     @hidePicker() # initialzes picker and labels
     @hookUpHandlers()
@@ -52,14 +54,18 @@ class LiquidFormItem
   ensureHtml: ->
     @container.addClass 'lf-item'
     if (@picker = $ '.lf-picker', @container).length < 1
-      @picker = @container.children().first().addClass 'lf-picker'
+      if (@picker = @container.children().first()).length < 1
+        @container.append @picker = $ '<div class="lf-picker-dummy"/>'
+      @picker.addClass 'lf-picker'
+    #@label = $ "<span class=\"lf-label\" title=\"#{@config.title ? ''}\">label</span>"
     @label = $ '<span class="lf-label">label</span>'
+      .attr 'title', @config.title
       .insertBefore @picker
     @prefix = $ '<span class="lf-prefix">prefix</span>'
       .insertBefore @label
     @suffix = $ '<span class="lf-suffix">suffix</span>'
       .insertAfter @label
-    @close = $ '<a class="lf-close"><i></i></a>'
+    @close = $ '<button type="button" class="lf-close" title="Done!"><i></i></button>'
       .appendTo @picker
 
   fixSize: _.once ->
