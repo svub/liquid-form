@@ -131,4 +131,4 @@ class LiquidFormItem
   getModeClass: (isFullscreen = @isFullscreen()) -> if isFullscreen then 'lf-fullscreen' else 'lf-relative'
   isFullscreen: ->
     if (f = @options.fullscreen)? then f
-    else Modernizr.touch or (@picker.width()*1.5 > (d = $ document).innerWidth()) or (@picker.height()*1.5 > d.innerHeight())
+    else Modernizr?.touch or (@picker.width()*1.5 > (d = $ document).innerWidth()) or (@picker.height()*1.5 > d.innerHeight())
