@@ -85,13 +85,19 @@ class LiquidFormItem
         .addClass @getModeClass isFullscreen
         .show()
       unless isFullscreen # fix relative position to be completely on screen and below label (=container)
-        po = @picker.offset(); d = $ document; co = @container.offset(); x = co.left; y = co.top+@container.height()
-        if (overflow = x+@picker.outerWidth()-d.innerWidth()) > 0 then x -= overflow
-        if (overflow = x) < 0 then x -= overlow
-        if (overflow = y+@picker.outerHeight()-d.innerHeight()) > 0 then y -= overflow
-        if (overflow = y) < 0 then y -= overflow
-        @picker.css 'left', x-co.left
-        @picker.css 'top', y-co.top
+        #d = $ document; co = @container.offset(); x = co.left; y = co.top+@container.height(); w = @picker.outerWidth(); h = @picker.outerHeight()
+        #if (overflow = x+w-d.innerWidth()) > 0 then x -= overflow
+        #if (overflow = x) < 0 then x -= overflow
+        #if x < 0 then x = 0
+        #if (overflow = y+h-d.innerHeight()) > 0 then y -= overflow
+        #if (overflow = y) < 0 then y -= overflow
+        #if y < 0 then y = 0
+        #@picker.css 'left', x-co.left
+        #@picker.css 'top', y-co.top
+        #c = @container; co = c.offset()
+        #u.keepCompletelyVisible @picker, co.left, co.top+@c.height(), c
+        #u.keepCompletelyVisible @picker, 0, co.top+c.height(), c
+        u.showBelow @picker, @container
       later =>
         @config.onShow?()
 
@@ -125,4 +131,4 @@ class LiquidFormItem
   getModeClass: (isFullscreen = @isFullscreen()) -> if isFullscreen then 'lf-fullscreen' else 'lf-relative'
   isFullscreen: ->
     if (f = @options.fullscreen)? then f
-    else (@picker.width()*1.5 > (d = $ document).innerWidth()) or (@picker.height()*1.5 > d.innerHeight())
+    else Modernizr.touch or (@picker.width()*1.5 > (d = $ document).innerWidth()) or (@picker.height()*1.5 > d.innerHeight())
