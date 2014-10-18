@@ -7,7 +7,10 @@ class LiquidForm
     @container.data 'lf', @
     @options = @configMap.options ? {}
     delete @configMap.options
-    # TODO set default options
+
+    # set default options
+    @options.fadeIn ?= 250
+    @options.fadeOut ?= 250
 
     @initItems()
     @initFoldables()
@@ -26,7 +29,7 @@ class LiquidForm
     closed = data.closed ? not (data.open ? false)
     text = (data.text ? 'Open|Close').split '|'
     node.addClass 'lf-label'
-    target = $ '#'+node.data().target
+    target = $ '#'+data.target
     target.addClass 'lf-foldable'
     updateState = (toggle = true) ->
       if toggle then closed = not closed
@@ -73,44 +76,51 @@ class LiquidFormItem
     @picker.css 'min-height', @picker.height()
 
   hookUpHandlers: ->
-    @label.click => @showPicker()
+    #@label.click => @showPicker()
+    @label.click => @togglePicker()
     @close.click => @hidePicker()
     ($ document).click (e) => @maybeHide e
+
+  togglePicker: ->
+    showPicker = @isHidden()
+    #@config.onToggle? showPicker
+    #@options.onToggle? showPicker
+    #Meteor.liquidForm.onToggle? showPicker # HACK: use event mechanism
+    # the handlers can override showing and hiding by returning a boolean
+    showPicker = u.doIfMulti [@config.onToggle, @options.onToggle, Meteor.liquidForm.onToggle], [showPicker], showPicker
+    if showPicker then @showPicker() else @hidePicker()
 
   showPicker: ->
     @fixSize()
     later => # showPicker does not return false to not stop the click so that other fl-items get hidden but this will also tricker this maybeHide method; but later will trigger only after the maybeHide
       isFullscreen = @isFullscreen()
+      @config.onBeforeShow? isFullscreen
+      @options.onBeforeShow? isFullscreen
+      Meteor.liquidForm.onBeforeShow? isFullscreen # HACK: use event mechanism
       logmr 'lf.showPicker', @picker.addClass 'lf-modal'
         .addClass @getModeClass isFullscreen
-        .show()
+        .show @options.fadeIn, => later => @config.onShow? isFullscreen
+      @container.addClass 'lf-open'
       unless isFullscreen # fix relative position to be completely on screen and below label (=container)
-        #d = $ document; co = @container.offset(); x = co.left; y = co.top+@container.height(); w = @picker.outerWidth(); h = @picker.outerHeight()
-        #if (overflow = x+w-d.innerWidth()) > 0 then x -= overflow
-        #if (overflow = x) < 0 then x -= overflow
-        #if x < 0 then x = 0
-        #if (overflow = y+h-d.innerHeight()) > 0 then y -= overflow
-        #if (overflow = y) < 0 then y -= overflow
-        #if y < 0 then y = 0
-        #@picker.css 'left', x-co.left
-        #@picker.css 'top', y-co.top
-        #c = @container; co = c.offset()
-        #u.keepCompletelyVisible @picker, co.left, co.top+@c.height(), c
-        #u.keepCompletelyVisible @picker, 0, co.top+c.height(), c
         u.showBelow @picker, @container
-      later =>
-        @config.onShow?()
 
   isHidden: -> @picker.is(':hidden')
   maybeHide: (e) -> unless @isHidden()
     o = @picker.offset(); x = e.pageX; y = e.pageY
     w = @picker.outerWidth(); h = @picker.outerHeight()
-    log "lf.maybeHide: left=#{o.left}; top=#{o.top}; width=#{w}; height=#{h}; x=#{x}; y=#{y}"
-    @hidePicker() unless x? and y? and o.left <= x <= o.left+w and o.top <= y <= o.top+h
+    logmr "lf.maybeHide: left=#{o.left}; top=#{o.top}; width=#{w}; height=#{h}; x=#{x}; y=#{y}, isChild", isChild = (($ e.toElement)?.parents '.lf-picker').length > 0
+    @hidePicker @ unless isChild or (x? and y? and o.left <= x <= o.left+w and o.top <= y <= o.top+h)
   hidePicker: -> unless @isHidden()
     log 'lf.hidePicker..,'
-    @picker.hide().removeClass('lf-modal lf-fullscreen lf-relative').css('left', '').css 'top', ''
-    if @options.data? then logmr 'lf.hidePicker: updated from form', u.updateFromForm @form, @options.data
+    @picker.hide @options.fadeOut, =>
+      @picker.removeClass('lf-modal lf-fullscreen lf-relative').css('left', '').css 'top', ''
+      @container.removeClass 'lf-open'
+      @config.onAfterHide?()
+      @options.onAfterHide?()
+      Meteor.liquidForm.onAfterHide?() # HACK: use event mechanism
+    if (dataObj = @options.data)?
+      dataObj = dataObj() if _.isFunction dataObj
+      logmr 'lf.hidePicker: updated from form', u.updateFromForm @form, dataObj
     @update()
 
   update: -> @updateLabels logmr 'lf.update: parsed labels', @parseLabels @config.onChange()

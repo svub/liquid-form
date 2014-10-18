@@ -17,19 +17,18 @@
     }
     .lf-item { display: inline; position: relative; line-height: @lf-line-height;
         .lf-prefix:after { content: " "; }
-        .lf-label { }
+        &.lf-open .lf-label { #fa-icon-after(caret-up); }
         .lf-suffix:before { content: " "; }
         @xp: 2em; @yp: 1.5em;
-        .lf-picker { z-index: 1001; padding: @yp @xp (@yp+2em) @xp; border-radius: 1em; display: inline-block; background-color: @lf-bg-color; box-shadow: 0 0 2em rgba(0,0,0,.25);
-            //.lf-close { padding: .25em .333em; background-color: @lf-bg-color; border-radius: 50%; }
-            //.lf-close { .btn; .btn-primary; } # do yourself to be most flexible
-            .lf-close { z-index: 1; position: absolute; right: @xp; bottom: @yp; }
-            &.lf-relative { position: absolute;
-                //.lf-close { position: absolute; bottom: ; right: 2em; }
-            }
-            &.lf-fullscreen { position: fixed; top: 1em; right: 1em; bottom: 1em; left: 1em; z-index: 1030;
+        .lf-picker { z-index: 1001; padding: @yp @xp (@yp+2em) @xp; border-radius: 1em; display: inline-block;
+            background-color: @lf-bg-color; box-shadow: 0 0 @xp rgba(0,0,0,.25);
+            .lf-close { z-index: 1; position: absolute; right: @xp; bottom: @yp; box-shadow: 0 0 .1em .5em @lf-bg-color; }
+            &.lf-relative { position: absolute; }
+            &.lf-fullscreen { //position: fixed; top: 1em; right: 1em; bottom: 1em; left: 1em; z-index: 1031;
+                position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 1031;
                 min-height: 0 !important; min-width: 0 !important; overflow: auto; box-shadow: 0 0 5em rgba(0,0,0, .5);
-                //.lf-close { position: absolute; bottom: 1.5em; right: 2em; }
+                border-radius: 0;
+                .lf-close { position: fixed; }
             }
             &.lf-picker-dummy { visibility: hidden; }
         }
