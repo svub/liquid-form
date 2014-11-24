@@ -1,3 +1,6 @@
+@lf-x-padding: 2em;
+@lf-y-padding: 1.5em;
+
 .liquid-form {
     .lf-label { #lf-link(); }
     textarea:not(.lf-raw) {
@@ -19,28 +22,37 @@
         .lf-prefix:after { content: " "; }
         &.lf-open .lf-label { #fa-icon-after(caret-up); }
         .lf-suffix:before { content: " "; }
-        @xp: 2em; @yp: 1.5em;
+        @xp: @lf-x-padding; @yp: @lf-y-padding;
         .lf-picker { z-index: 1001; padding: @yp @xp (@yp+2em) @xp; border-radius: 1em; display: inline-block;
             background-color: @lf-bg-color; box-shadow: 0 0 @xp rgba(0,0,0,.25);
             .lf-close { z-index: 1; position: absolute; right: @xp; bottom: @yp; box-shadow: 0 0 .1em .5em @lf-bg-color; }
             &.lf-relative { position: absolute; }
-            &.lf-fullscreen { //position: fixed; top: 1em; right: 1em; bottom: 1em; left: 1em; z-index: 1031;
-                position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 1031;
-                min-height: 0 !important; min-width: 0 !important; overflow: auto; box-shadow: 0 0 5em rgba(0,0,0, .5);
-                border-radius: 0;
+            &.lf-fullscreen { #fullscreen();
                 .lf-close { position: fixed; }
             }
             &.lf-picker-dummy { visibility: hidden; }
         }
     }
-    textarea:not(.lf-raw) { padding: 0; border: none; background: transparent; box-shadow: none;
+    textarea:not(.lf-raw) { padding: 0; border: none; background: transparent; box-shadow: none; border-bottom: @lf-link-border;
     }
 }
 
-.lf-toggle:not(.lf-closed) { #fa-icon-after(caret-up); }
+.lf-toggle:not(.lf-item):not(.lf-raw) {
+    &.lf-closed { #fa-icon-after(caret-down); }
+    &.lf-open { #fa-icon-after(caret-up); }
+}
 .lf-foldable {
-    overflow: hidden; .transition(height 1s);
+    overflow: hidden; .transition(height .666s);
     &.lf-closed { height: 0 !important; }
+    .lf-close { display: none; }
+    &.lf-touch-fullscreen { .touch & { #fullscreen(); } }
+}
+
+#fullscreen {
+    position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 1031;
+    min-height: 0 !important; min-width: 0 !important; overflow: auto; box-shadow: 0 0 5em rgba(0,0,0, .5);
+    border-radius: 0;
+    .lf-close { position: fixed; z-index: 1; position: absolute; right: @lf-x-padding; bottom: @lf-y-padding; box-shadow: 0 0 .1em .5em @lf-bg-color; }
 }
 
 #lf-link {

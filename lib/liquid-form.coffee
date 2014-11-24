@@ -1,4 +1,5 @@
 Meteor.liquidForm = (selector, config) -> new LiquidForm selector, config
+
 class LiquidForm
   constructor: (@selector, @configMap = {}) ->
     @items = {}
@@ -23,26 +24,53 @@ class LiquidForm
     else log "LiquidForm: item '#{selector}' not found!"
 
   initFoldables: ->
-    @initFoldable $ toggle for toggle in ($ '.lf-toggle', @container)
-  initFoldable: (node) ->
+    new LiquidFormFoldable $ foldable for foldable in $ '.lf-foldable', (if @options.localFoldables then @container)
+    @initToggle $ toggle for toggle in $ '.lf-toggle', (if @options.localToggles then @container)
+  initToggle: (node) ->
     data = node.data()
-    closed = data.closed ? not (data.open ? false)
-    text = (data.text ? 'Open|Close').split '|'
-    node.addClass 'lf-label'
-    target = $ '#'+data.target
-    target.addClass 'lf-foldable'
-    updateState = (toggle = true) ->
-      if toggle then closed = not closed
-      target.toggleClass 'lf-closed', closed
-      node.text text[if closed then 0 else 1]
+    label = if (isItem = node.is '.lf-item') then node.find '.lf-label' else node
+    raw = node.is '.lf-raw'
+    unless isItem or raw
+      text = (data.text ? 'Open|Close').split '|'
+      node.addClass 'lf-label'
+    unless (foldable = (target = $ data.target).data?()?.lfFoldable ? new LiquidFormFoldable target)?
+      return loge "LiquidForm: foldable '#{target}' not found. You need to add data-target=\"... CSS path to find the foldable \" to your toggle tag.", node
+    updateLabel = (closed) ->
+      node.text text[if closed then 0 else 1] unless raw or isItem
       node.toggleClass 'lf-closed', closed
-    node.on 'click', -> updateState()
-    updateState false
+      node.toggleClass 'lf-open', not closed
+    if not raw then Deps.autorun -> updateLabel foldable.closed()
+    node.on 'click', -> logmr '#####', node, foldable.toggle()
+    Deps.nonreactive -> updateLabel foldable.closed()
 
   getItem: (selector) -> @items[selector]
   allItems: -> (item for own s, item of logmr 'LiquidForm.closePicker: all items:', @items)
   closePicker: -> (logr item).hidePicker() for item in @allItems()
   update: -> item.update() for item in @allItems()
+
+
+class LiquidFormFoldable
+  constructor: (@container) ->
+    logmr 'new lfFoldable...', @container.addClass('lf-foldable').data 'lfFoldable', @
+    unless @container? and @container.length > 0
+      return loge "LiquidForm: foldable not found", @container
+    @dep = new Deps.Dependency
+    if @container.is '.lf-touch-fullscreen'
+      @closeBtn = $ '<button type="button" class="lf-close" title="Done!"><i></i></button>'
+        .appendTo @container
+        .click => @close true
+    @close @_closed() or (data = @container.data())?.closed ? not (data?.open ? false)
+
+  _closed: -> @container.is('.lf-closed')
+  toggle: -> @close not @_closed()
+  close: (closed) ->
+    if closed isnt @_closed()
+      @dep.changed()
+      @container.toggleClass 'lf-closed', closed
+      @container.toggleClass 'lf-open', not closed
+  closed: -> @dep.depend(); @_closed()
+  opened: -> @dep.depend(); not @_closed()
+
 
 class LiquidFormItem
   constructor: (@container, @config, @options, @form) ->
@@ -51,7 +79,7 @@ class LiquidFormItem
 
     @ensureHtml()
     @container.data 'lf-item', @
-    @hidePicker() # initialzes picker and labels
+    @hidePicker false # initialzes picker and labels without animations
     @hookUpHandlers()
 
   ensureHtml: ->
@@ -86,6 +114,7 @@ class LiquidFormItem
     #@config.onToggle? showPicker
     #@options.onToggle? showPicker
     #Meteor.liquidForm.onToggle? showPicker # HACK: use event mechanism
+    #showPicker = (@options.onToggle? showPicker) ? showPicker
     # the handlers can override showing and hiding by returning a boolean
     showPicker = u.doIfMulti [@config.onToggle, @options.onToggle, Meteor.liquidForm.onToggle], [showPicker], showPicker
     if showPicker then @showPicker() else @hidePicker()
@@ -110,9 +139,9 @@ class LiquidFormItem
     w = @picker.outerWidth(); h = @picker.outerHeight()
     logmr "lf.maybeHide: left=#{o.left}; top=#{o.top}; width=#{w}; height=#{h}; x=#{x}; y=#{y}, isChild", isChild = (($ e.toElement)?.parents '.lf-picker').length > 0
     @hidePicker @ unless isChild or (x? and y? and o.left <= x <= o.left+w and o.top <= y <= o.top+h)
-  hidePicker: -> unless @isHidden()
-    log 'lf.hidePicker..,'
-    @picker.hide @options.fadeOut, =>
+  hidePicker: (animation = @options.fadeOut) -> unless @isHidden()
+    log 'lf.hidePicker...,'
+    @picker.hide animation, =>
       @picker.removeClass('lf-modal lf-fullscreen lf-relative').css('left', '').css 'top', ''
       @container.removeClass 'lf-open'
       @config.onAfterHide?()
