@@ -24,6 +24,7 @@
         .lf-suffix:before { content: " "; }
         @xp: @lf-x-padding; @yp: @lf-y-padding;
         .lf-picker { z-index: 1001; padding: @yp @xp (@yp+2em) @xp; border-radius: 1em; display: inline-block;
+            line-height: 1.3;
             background-color: @lf-bg-color; box-shadow: 0 0 @xp rgba(0,0,0,.25);
             .lf-close { z-index: 1; position: absolute; right: @xp; bottom: @yp; box-shadow: 0 0 .1em .5em @lf-bg-color; }
             &.lf-relative { position: absolute; }

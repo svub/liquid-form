@@ -46,7 +46,8 @@ class LiquidForm
   getItem: (selector) -> @items[selector]
   allItems: -> (item for own s, item of logmr 'LiquidForm.closePicker: all items:', @items)
   closePicker: -> (logr item).hidePicker() for item in @allItems()
-  update: -> item.update() for item in @allItems()
+  #update: -> item.update() for item in @allItems()
+  update: -> item.update false for item in @allItems()
 
 
 class LiquidFormFoldable
@@ -79,7 +80,7 @@ class LiquidFormItem
 
     @ensureHtml()
     @container.data 'lf-item', @
-    @hidePicker false # initialzes picker and labels without animations
+    @hidePicker false, false # initialzes picker and labels without animations and notification
     @hookUpHandlers()
 
   ensureHtml: ->
@@ -132,6 +133,10 @@ class LiquidFormItem
       @container.addClass 'lf-open'
       unless isFullscreen # fix relative position to be completely on screen and below label (=container)
         u.showBelow @picker, @container
+        if _.isNumber delay = @options.fadeIn
+          steps = 10
+          for step in [1..steps]
+            later step*delay/steps, => u.showBelow @picker, @container
 
   isHidden: -> @picker.is(':hidden')
   maybeHide: (e) -> unless @isHidden()
@@ -139,8 +144,8 @@ class LiquidFormItem
     w = @picker.outerWidth(); h = @picker.outerHeight()
     logmr "lf.maybeHide: left=#{o.left}; top=#{o.top}; width=#{w}; height=#{h}; x=#{x}; y=#{y}, isChild", isChild = (($ e.toElement)?.parents '.lf-picker').length > 0
     @hidePicker @ unless isChild or (x? and y? and o.left <= x <= o.left+w and o.top <= y <= o.top+h)
-  hidePicker: (animation = @options.fadeOut) -> unless @isHidden()
-    log 'lf.hidePicker...,'
+  hidePicker: (animation = @options.fadeOut, notify = true) -> unless isHidden = @isHidden()
+    logmr 'lf.hidePicker...', isHidden
     @picker.hide animation, =>
       @picker.removeClass('lf-modal lf-fullscreen lf-relative').css('left', '').css 'top', ''
       @container.removeClass 'lf-open'
@@ -150,9 +155,12 @@ class LiquidFormItem
     if (dataObj = @options.data)?
       dataObj = dataObj() if _.isFunction dataObj
       logmr 'lf.hidePicker: updated from form', u.updateFromForm @form, dataObj
-    @update()
+    @update notify
 
-  update: -> @updateLabels logmr 'lf.update: parsed labels', @parseLabels @config.onChange()
+  update: (notify = true) -> Deps.nonreactive =>
+    labels = if notify then @config.onChange() ? @config.labels?()
+    else @config.labels?() ? @config.onChange()
+    @updateLabels logmr 'lf.update: parsed labels', @parseLabels labels
 
   parseLabels: (labels) ->
     if _.isArray(l = labels) then valid: true, prefix: l[0], label: l[1], suffix: l[2], value: l[1]
