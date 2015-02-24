@@ -23,6 +23,7 @@
         &.lf-open .lf-label { #fa-icon-after(caret-up); }
         .lf-suffix:before { content: " "; }
         @xp: @lf-x-padding; @yp: @lf-y-padding;
+        // TODO make .lf-picker an .lf-modal
         .lf-picker { z-index: 1001; padding: @yp @xp (@yp+2em) @xp; border-radius: 1em; display: inline-block;
             line-height: 1.3;
             background-color: @lf-bg-color; box-shadow: 0 0 @xp rgba(0,0,0,.25);
@@ -42,11 +43,26 @@
     &.lf-closed { #fa-icon-after(caret-down); }
     &.lf-open { #fa-icon-after(caret-up); }
 }
+.lf-foldable, .lf-modal {
+    overflow: hidden; .transition(all .666s);
+    //opacity: 1;
+    //&.lf-closed { height: 0 !important; opacity: 0; }
+    &.lf-fullscreen { .touch & { #fullscreen(); } }
+}
 .lf-foldable {
-    overflow: hidden; .transition(height .666s);
-    &.lf-closed { height: 0 !important; }
     .lf-close { display: none; }
     &.lf-touch-fullscreen { .touch & { #fullscreen(); } }
+}
+.lf-modal {
+    position: absolute;
+    z-index: 1;
+    padding: @lf-y-padding @lf-x-padding;
+    background-color: @lf-bg-color;
+    &:not(.lf-fullscreen) {
+        max-width: 90%;
+        margin: 2em;
+        box-shadow: 0 0 @lf-x-padding rgba(0,0,0,.25);
+    }
 }
 
 #fullscreen {
